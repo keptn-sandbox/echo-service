@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/keptn-sandbox/echo-service/cmd/eventhandling"
 	events "github.com/keptn-sandbox/echo-service/pkg"
+	keptn "github.com/keptn/go-utils/pkg/lib"
 	"log"
 	"os"
-
-	keptn "github.com/keptn/go-utils/pkg/lib"
+	"time"
 
 	"github.com/cloudevents/sdk-go/pkg/cloudevents"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents/client"
@@ -32,11 +32,6 @@ type envConfig struct {
 	EventBrokerUrl string `envconfig:"EVENTBROKER" default:""`
 }
 
-/**
- * This method gets called when a new event is received from the Keptn Event Distributor
- * Depending on the Event Type will call the specific event handler functions, e.g: handleDeploymentFinishedEvent
- * See https://github.com/keptn/spec/blob/0.1.3/cloudevents.md for details on the payload
- */
 func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error {
 	myKeptn, err := keptn.NewKeptn(&event, keptnOptions)
 
@@ -57,7 +52,7 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 			return err
 		}
 
-		return eventhandling.HandleEchoEvent(myKeptn, event, eventData, log.Writer())
+		return eventhandling.HandleEchoEvent(eventData, log.Writer(), eventhandling.NewConfigurableSleeper(5*time.Second, time.Sleep))
 	}
 	// Unknown Event -> Throw Error!
 	var errorMsg string

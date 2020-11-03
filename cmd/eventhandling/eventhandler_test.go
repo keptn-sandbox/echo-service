@@ -40,14 +40,15 @@ func initializeTestObjects(eventFileName string) (*keptn.Keptn, *cloudevents.Eve
 
 func TestHandleEchoEvent(t *testing.T) {
 	testLogger := testWriter{}
-	keptn, incomingEvent, err := initializeTestObjects("../../test-events/echo-event.json")
+	testSleeper := TestSleeper{}
+	_, incomingEvent, err := initializeTestObjects("../../test-events/echo-event.json")
 	require.Nil(t, err)
 
 	data := &events.EchoEventData{}
 	err = incomingEvent.DataAs(data)
 	require.Nil(t, err)
 
-	err = HandleEchoEvent(keptn, *incomingEvent, data, &testLogger)
+	err = HandleEchoEvent(data, &testLogger, &testSleeper)
 	require.Nil(t, err)
 
 	assert.Equal(t, "GOT A MESSAGE: hello\n", testLogger.Last())
