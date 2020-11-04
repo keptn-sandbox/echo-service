@@ -12,16 +12,14 @@ Cache-Control: no-cache
 Content-Type: application/cloudevents+json
 
 {
-  "type": "sh.keptn.event.echo",
+  "type": "sh.keptn.event.echo.triggered",
   "contenttype": "application/json",
   "specversion": "1.0",
   "source": "echo-service",
   "id": "f2b878d3-03c0-4e8f-bc3f-454bc1b3d79d",
   "time": "2019-06-07T07:02:15.64489Z",
   "shkeptncontext": "08735340-6f9e-4b32-97ff-3b6c292bc509",
-  "data": {
-    "message" : "hello"
-  }
+  "data": {}
 }
 
 ###

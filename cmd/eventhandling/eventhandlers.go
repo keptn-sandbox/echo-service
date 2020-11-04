@@ -6,8 +6,8 @@ import (
 	"io"
 )
 
-func HandleEchoEvent(data *events.EchoEventData, writer io.Writer, sleeper Sleeper) error {
-	_, err := fmt.Fprintf(writer, "GOT A MESSAGE: %s\n", data.Message)
+func HandleEchoEvent(data *events.EchoTriggeredEventData, writer io.Writer, sleeper Sleeper) error {
+	_, err := fmt.Fprintf(writer, "GOT ECHO TRIGGERED EVENT\n")
 	sleeper.Sleep()
 	return err
 }

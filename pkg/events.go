@@ -1,8 +1,23 @@
 package events
 
-const EchoEventType = "sh.keptn.event.echo"
+import "github.com/keptn/go-utils/pkg/lib/v0_2_0"
 
-type EchoEventData struct {
-	//Message is the message to echo
-	Message string
+const EchoEventTriggeredType = "sh.keptn.event.echo.triggered"
+
+const EchoStartedEventType = "sh.keptn.event.echo.started"
+
+const EchoFinishedEventType = "sh.keptn.event.echo.finished"
+
+const ServiceName = "echo-service"
+
+type EchoTriggeredEventData struct {
+	v0_2_0.EventData
+}
+
+type EchoStartedEventData struct {
+	v0_2_0.EventData
+}
+
+type EchoFinishedEventData struct {
+	v0_2_0.EventData
 }

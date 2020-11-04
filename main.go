@@ -9,6 +9,7 @@ import (
 	keptncommon "github.com/keptn/go-utils/pkg/lib/keptn"
 	keptnv2 "github.com/keptn/go-utils/pkg/lib/v0_2_0"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -44,24 +45,113 @@ func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error 
 		return err
 	}
 
-	if event.Type() == events.EchoEventType {
-		log.Printf("Processing Echo Event")
+	if event.Type() == events.EchoEventTriggeredType {
+		log.Println("Processing Echo Triggered Event")
 
-		eventData := &events.EchoEventData{}
+		// 1. send started event
+		if err := sendStartEvent(shkeptncontext, event); err != nil {
+			return err
+		}
+
+		// 2. process event
+		eventData := &events.EchoTriggeredEventData{}
 		err := event.DataAs(eventData)
 		if err != nil {
 			log.Printf("Got Data Error: %s", err.Error())
 			return err
 		}
+		if err := eventhandling.HandleEchoEvent(eventData, log.Writer(), eventhandling.NewConfigurableSleeper(5*time.Second, time.Sleep)); err != nil {
+			return err
+		}
 
-		return eventhandling.HandleEchoEvent(eventData, log.Writer(), eventhandling.NewConfigurableSleeper(5*time.Second, time.Sleep))
+		// 3. send finish event
+		if err := sendFinishEvent(shkeptncontext, event, keptnv2.ResultPass); err != nil {
+			return err
+		}
+		return nil
 	}
-	// Unknown Event -> Throw Error!
-	var errorMsg string
-	errorMsg = fmt.Sprintf("Unhandled Keptn Cloud Event: %s", event.Type())
 
-	log.Print(errorMsg)
-	return errors.New(errorMsg)
+	return nil
+}
+
+func sendStartEvent(shkeptnctx string, incomingEvent cloudevents.Event) error {
+
+	echoStartedEventData := events.EchoStartedEventData{}
+	echoTriggeredEventData := events.EchoTriggeredEventData{}
+
+	if err := incomingEvent.DataAs(&echoTriggeredEventData); err != nil {
+		return err
+	}
+
+	echoStartedEventData.Status = keptnv2.StatusSucceeded
+	echoStartedEventData.EventData = echoTriggeredEventData.EventData
+	event := cloudevents.NewEvent()
+	event.SetType(events.EchoStartedEventType)
+	event.SetSource(events.ServiceName)
+	event.SetDataContentType(cloudevents.ApplicationJSON)
+	event.SetExtension("shkeptncontext", shkeptnctx)
+	event.SetExtension("triggeredid", incomingEvent.ID())
+	event.SetData(cloudevents.ApplicationJSON, echoStartedEventData)
+
+	return sendEvent(event)
+
+}
+
+func sendFinishEvent(shkeptnctx string, incomingEvent cloudevents.Event, result keptnv2.ResultType) error {
+	echoFinishedEventData := events.EchoFinishedEventData{}
+	echoTriggeredEventData := events.EchoTriggeredEventData{}
+
+	if err := incomingEvent.DataAs(&echoTriggeredEventData); err != nil {
+		return err
+	}
+
+	echoFinishedEventData.Result = result
+	echoFinishedEventData.Status = keptnv2.StatusSucceeded
+	echoFinishedEventData.EventData = echoTriggeredEventData.EventData
+	event := cloudevents.NewEvent()
+	event.SetType(events.EchoFinishedEventType)
+	event.SetSource(events.ServiceName)
+	event.SetDataContentType(cloudevents.ApplicationJSON)
+	event.SetExtension("shkeptncontext", shkeptnctx)
+	event.SetExtension("triggeredid", incomingEvent.ID())
+	event.SetData(cloudevents.ApplicationJSON, echoFinishedEventData)
+
+	return sendEvent(event)
+
+}
+
+func sendEvent(event cloudevents.Event) error {
+
+	endPoint, err := getServiceEndpoint("EVENTBROKER")
+	if err != nil {
+		return errors.New("Failed to retrieve endpoint of eventbroker. %s" + err.Error())
+	}
+
+	if endPoint.Host == "" {
+		return errors.New("Host of eventbroker not set")
+	}
+	keptnHandler, err := keptnv2.NewKeptn(&event, keptncommon.KeptnOpts{
+		EventBrokerURL: endPoint.String(),
+	})
+
+	if err != nil {
+		return errors.New("Failed to initialize Keptn handler: " + err.Error())
+	}
+
+	return keptnHandler.SendCloudEvent(event)
+}
+
+func getServiceEndpoint(service string) (url.URL, error) {
+	url, err := url.Parse(os.Getenv(service))
+	if err != nil {
+		return *url, fmt.Errorf("Failed to retrieve value from ENVIRONMENT_VARIABLE: %s", service)
+	}
+
+	if url.Scheme == "" {
+		url.Scheme = "http"
+	}
+
+	return *url, nil
 }
 
 func main() {
