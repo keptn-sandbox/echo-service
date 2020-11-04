@@ -12,6 +12,7 @@ const ServiceName = "echo-service"
 
 type EchoTriggeredEventData struct {
 	v0_2_0.EventData
+	SimulateWrongEventSeq bool
 }
 
 type EchoStartedEventData struct {
