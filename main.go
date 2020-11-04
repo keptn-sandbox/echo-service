@@ -6,18 +6,17 @@ import (
 	"fmt"
 	"github.com/keptn-sandbox/echo-service/cmd/eventhandling"
 	events "github.com/keptn-sandbox/echo-service/pkg"
-	keptn "github.com/keptn/go-utils/pkg/lib"
+	keptncommon "github.com/keptn/go-utils/pkg/lib/keptn"
+	keptnv2 "github.com/keptn/go-utils/pkg/lib/v0_2_0"
 	"log"
 	"os"
 	"time"
 
-	"github.com/cloudevents/sdk-go/pkg/cloudevents"
-	"github.com/cloudevents/sdk-go/pkg/cloudevents/client"
-	cloudeventshttp "github.com/cloudevents/sdk-go/pkg/cloudevents/transport/http"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/kelseyhightower/envconfig"
 )
 
-var keptnOptions = keptn.KeptnOpts{}
+var keptnOptions = keptncommon.KeptnOpts{}
 
 type envConfig struct {
 	// Port on which to listen for cloudevents
@@ -33,9 +32,12 @@ type envConfig struct {
 }
 
 func processKeptnCloudEvent(ctx context.Context, event cloudevents.Event) error {
-	myKeptn, err := keptn.NewKeptn(&event, keptnOptions)
 
-	log.Printf("gotEvent(%s): %s - %s", event.Type(), myKeptn.KeptnContext, event.Context.GetID())
+	var shkeptncontext string
+	event.Context.ExtensionAs("shkeptncontext", &shkeptncontext)
+
+	_, err := keptnv2.NewKeptn(&event, keptnOptions)
+	log.Printf("gotEvent(%s): %s - %s", event.Type(), shkeptncontext, event.Context.GetID())
 
 	if err != nil {
 		log.Printf("failed to parse incoming cloudevent: %v", err)
@@ -75,35 +77,18 @@ func main() {
  * Opens up a listener on localhost:port/path and passes incoming requets to gotEvent
  */
 func _main(args []string, env envConfig) int {
+
 	ctx := context.Background()
+	ctx = cloudevents.WithEncodingStructured(ctx)
 
-	// configure keptn options
-	if env.Env == "local" {
-		log.Println("env=local: Running with local filesystem to fetch resources")
-		keptnOptions.UseLocalFileSystem = true
-	}
-
-	keptnOptions.ConfigurationServiceURL = env.ConfigurationServiceUrl
-	keptnOptions.EventBrokerURL = env.EventBrokerUrl
-
-	// configure http server to receive cloudevents
-	t, err := cloudeventshttp.New(
-		cloudeventshttp.WithPort(env.Port),
-		cloudeventshttp.WithPath(env.Path),
-	)
-
-	log.Println("Starting echo-service...")
-	log.Printf("    on Port = %d; Path=%s", env.Port, env.Path)
-
-	if err != nil {
-		log.Fatalf("failed to create transport, %v", err)
-	}
-	c, err := client.New(t)
+	p, err := cloudevents.NewHTTP(cloudevents.WithPath(env.Path), cloudevents.WithPort(env.Port))
 	if err != nil {
 		log.Fatalf("failed to create client, %v", err)
 	}
-
-	log.Fatalf("failed to start receiver: %s", c.StartReceiver(ctx, processKeptnCloudEvent))
-
+	c, err := cloudevents.NewClient(p)
+	if err != nil {
+		log.Fatalf("failed to create client, %v", err)
+	}
+	log.Fatal(c.StartReceiver(ctx, processKeptnCloudEvent))
 	return 0
 }

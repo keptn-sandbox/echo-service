@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/keptn/go-utils/pkg/lib"
 	keptn "github.com/keptn/go-utils/pkg/lib"
+	keptncommon "github.com/keptn/go-utils/pkg/lib/keptn"
 
 	"github.com/cloudevents/sdk-go/pkg/cloudevents"
 )
@@ -31,7 +32,7 @@ func initializeTestObjects(eventFileName string) (*keptn.Keptn, *cloudevents.Eve
 		return nil, nil, fmt.Errorf("Error parsing: %s", err.Error())
 	}
 
-	var keptnOptions = keptn.KeptnOpts{}
+	var keptnOptions = keptncommon.KeptnOpts{}
 	keptnOptions.UseLocalFileSystem = true
 	myKeptn, err := keptn.NewKeptn(incomingEvent, keptnOptions)
 
