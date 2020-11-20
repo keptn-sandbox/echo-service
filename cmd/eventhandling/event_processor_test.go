@@ -28,7 +28,7 @@ func TestEventsGetsSent(t *testing.T) {
 
 	event := cloudevents.NewEvent()
 	event.SetType(events.EchoEventTriggeredType)
-	event.SetData(cloudevents.ApplicationJSON, events.EchoTriggeredEventData{SimulateWrongEventSeq: false})
+	event.SetData(cloudevents.ApplicationJSON, events.EchoTriggeredEventData{})
 
 	err := eventProcessor.Process(event)
 
@@ -43,14 +43,14 @@ func TestEventsGetsSentInWrongOrder(t *testing.T) {
 
 	fakeEventSender := &FakeEventSender{}
 	fakeSleeper := &TestSleeper{}
-	eventProcessor := EchoCloudEventProcessor{
+	eventProcessor := BrokenEchoCloudEventProcessor{
 		EventSender: fakeEventSender,
 		Sleeper:     fakeSleeper,
 	}
 
 	event := cloudevents.NewEvent()
 	event.SetType(events.EchoEventTriggeredType)
-	event.SetData(cloudevents.ApplicationJSON, events.EchoTriggeredEventData{SimulateWrongEventSeq: true})
+	event.SetData(cloudevents.ApplicationJSON, events.EchoTriggeredEventData{})
 
 	err := eventProcessor.Process(event)
 

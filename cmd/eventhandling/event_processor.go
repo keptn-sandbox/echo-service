@@ -19,6 +19,14 @@ type EchoCloudEventProcessor struct {
 	Sleeper     Sleeper
 }
 
+// BrokenEchoCloudEventProcessor is an implementation that does wrong event signalling. I.e., it
+// sends a .finished event before a .started event.
+// Useful for testing purposes.
+type BrokenEchoCloudEventProcessor struct {
+	EventSender EventSender
+	Sleeper     Sleeper
+}
+
 // Process processes a cloud event
 func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
 
@@ -30,41 +38,51 @@ func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
 			return err
 		}
 
-		//TODO: make this prettier
-		if eventData.SimulateWrongEventSeq {
-			if err := ep.EventSender.SendEvent(ep.createEchoFinishedEvent(event)); err != nil {
-				log.Printf("Got Send Error: %s", err.Error())
-				return err
-			}
-
-		} else {
-			if err := ep.EventSender.SendEvent(ep.createEchoStartedEvent(event)); err != nil {
-				log.Printf("Got Send Error: %s", err.Error())
-				return err
-			}
+		if err := ep.EventSender.SendEvent(createEchoStartedEvent(event)); err != nil {
+			log.Printf("Got Send Error: %s", err.Error())
+			return err
 		}
 
 		log.Printf("GOT EVENT :)\n")
 
 		ep.Sleeper.Sleep()
 
-		if eventData.SimulateWrongEventSeq {
-			if err := ep.EventSender.SendEvent(ep.createEchoStartedEvent(event)); err != nil {
-				log.Printf("Got Send Error: %s", err.Error())
-				return err
-			}
-
-		} else {
-			if err := ep.EventSender.SendEvent(ep.createEchoFinishedEvent(event)); err != nil {
-				log.Printf("Got Send Error: %s", err.Error())
-				return err
-			}
+		if err := ep.EventSender.SendEvent(createEchoFinishedEvent(event)); err != nil {
+			log.Printf("Got Send Error: %s", err.Error())
+			return err
 		}
 	}
 	return nil
 }
 
-func (ep EchoCloudEventProcessor) createEchoStartedEvent(incomingEvent cloudevents.Event) event.Event {
+// Process processes a cloud event
+func (ep BrokenEchoCloudEventProcessor) Process(event cloudevents.Event) error {
+	if event.Type() == events.EchoEventTriggeredType {
+		log.Println("Processing Echo Triggered Event")
+		eventData := &events.EchoTriggeredEventData{}
+		if err := event.DataAs(eventData); err != nil {
+			log.Printf("Got Data Error: %s", err.Error())
+			return err
+		}
+
+		if err := ep.EventSender.SendEvent(createEchoFinishedEvent(event)); err != nil {
+			log.Printf("Got Send Error: %s", err.Error())
+			return err
+		}
+
+		log.Printf("GOT EVENT :)\n")
+
+		ep.Sleeper.Sleep()
+
+		if err := ep.EventSender.SendEvent(createEchoStartedEvent(event)); err != nil {
+			log.Printf("Got Send Error: %s", err.Error())
+			return err
+		}
+	}
+	return nil
+}
+
+func createEchoStartedEvent(incomingEvent cloudevents.Event) event.Event {
 	var shkeptnctx string
 	incomingEvent.Context.ExtensionAs("shkeptncontext", &shkeptnctx)
 
@@ -88,7 +106,7 @@ func (ep EchoCloudEventProcessor) createEchoStartedEvent(incomingEvent cloudeven
 	return outEvent
 }
 
-func (ep EchoCloudEventProcessor) createEchoFinishedEvent(incomingEvent cloudevents.Event) event.Event {
+func createEchoFinishedEvent(incomingEvent cloudevents.Event) event.Event {
 
 	var shkeptnctx string
 	incomingEvent.Context.ExtensionAs("shkeptncontext", &shkeptnctx)
