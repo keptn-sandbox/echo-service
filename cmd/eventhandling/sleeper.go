@@ -14,6 +14,7 @@ type ConfigurableSleeper struct {
 	sleep    func(time.Duration)
 }
 
+// Sleep pauses the execution
 func (c ConfigurableSleeper) Sleep() {
 	c.sleep(c.duration)
 }
@@ -30,6 +31,7 @@ func NewConfigurableSleeper(duration time.Duration, sleepFunc func(time.Duration
 type TestSleeper struct {
 }
 
+// Sleep pauses the execution
 func (s *TestSleeper) Sleep() {
 	//no-op
 }
