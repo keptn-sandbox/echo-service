@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const MAX_SEND_RETRIES = 3
+const maxSendRetries = 3
 
 // EventSender defines a cloud event sender
 type EventSender interface {
@@ -47,21 +47,21 @@ func NewHTTPEventSender(svcEndpoint url.URL) EventSender {
 	}
 }
 
+// SendEvent sends a cloud event
 func (es HTTPEventSender) SendEvent(event cloudevents.Event) error {
 
 	ctx := cloudevents.ContextWithTarget(context.Background(), es.svcEndpoint.String())
 	ctx = cloudevents.WithEncodingStructured(ctx)
 
 	var result protocol.Result
-	for i := 0; i <= MAX_SEND_RETRIES; i++ {
+	for i := 0; i <= maxSendRetries; i++ {
 		result = es.client.Send(ctx, event)
 		httpResult, ok := result.(*httpprotocol.Result)
 		if ok {
 			if httpResult.StatusCode >= 200 && httpResult.StatusCode < 300 {
 				return nil
-			} else {
-				<-time.After(keptn.GetExpBackoffTime(i + 1))
 			}
+			<-time.After(keptn.GetExpBackoffTime(i + 1))
 		} else if cloudevents.IsUndelivered(result) {
 			<-time.After(keptn.GetExpBackoffTime(i + 1))
 		} else {

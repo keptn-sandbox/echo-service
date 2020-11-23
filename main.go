@@ -18,7 +18,7 @@ type envConfig struct {
 	// Path to which cloudevents are sent
 	Path string `envconfig:"RCV_PATH" default:"/"`
 	// URL of the Keptn event broker (this is where this service sends cloudevents to)
-	EventBrokerUrl string `envconfig:"EVENTBROKER" default:""`
+	EventBrokerURL string `envconfig:"EVENTBROKER" default:""`
 	// Duration in milliseconds the echo service will sleep between sending a start and finished event
 	SleepTimeMillis int `envconfig:"SLEEP_TIME_MS" default:"1000"`
 	// Flag indicating whether the service shall send the .started and .finished events in correct or reversed order
