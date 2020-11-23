@@ -68,8 +68,6 @@ func (ep BrokenEchoCloudEventProcessor) Process(event cloudevents.Event) error {
 			return err
 		}
 
-		log.Printf("GOT EVENT :)\n")
-
 		ep.Sleeper.Sleep()
 
 		if err := ep.EventSender.SendEvent(createEchoStartedEvent(event)); err != nil {
