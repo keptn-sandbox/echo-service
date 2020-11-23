@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: echo-service
-          image: keptnsandbox/echo-service:latest # Todo: Replace this with your image name
+          image: keptnsandbox/echo-service:latest
           ports:
             - containerPort: 8080
           env:
