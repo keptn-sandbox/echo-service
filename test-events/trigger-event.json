@@ -1,5 +1,5 @@
 {
-  "type": "sh.keptn.event.firststage.echosequence.triggered",
+  "type": "sh.keptn.event.echo.triggered",
   "specversion": "1.0",
   "source": "travis-ci",
   "contenttype": "application/json",

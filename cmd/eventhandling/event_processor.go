@@ -31,7 +31,7 @@ type BrokenEchoCloudEventProcessor struct {
 func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
 
 	if event.Type() == events.EchoEventTriggeredType {
-		log.Println("Processing Echo Triggered Event")
+		log.Printf("GOT EVENT: <%s>\n", events.EchoEventTriggeredType)
 		eventData := &events.EchoTriggeredEventData{}
 		if err := event.DataAs(eventData); err != nil {
 			log.Printf("Got Data Error: %s", err.Error())
@@ -42,9 +42,6 @@ func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
 			log.Printf("Got Send Error: %s", err.Error())
 			return err
 		}
-
-		log.Printf("GOT EVENT :)\n")
-
 		ep.Sleeper.Sleep()
 
 		if err := ep.EventSender.SendEvent(createEchoFinishedEvent(event)); err != nil {
@@ -57,8 +54,9 @@ func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
 
 // Process processes a cloud event
 func (ep BrokenEchoCloudEventProcessor) Process(event cloudevents.Event) error {
+
 	if event.Type() == events.EchoEventTriggeredType {
-		log.Println("Processing Echo Triggered Event")
+		log.Printf("GOT EVENT: <%s>\n", events.EchoEventTriggeredType)
 		eventData := &events.EchoTriggeredEventData{}
 		if err := event.DataAs(eventData); err != nil {
 			log.Printf("Got Data Error: %s", err.Error())
