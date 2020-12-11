@@ -7,7 +7,7 @@ event.
 
 1. ```sh.keptn.event.echo.triggered``` event gets received
 2. ```sh.keptn.event.echo.started``` event gets sent
-3. The echo service sleeps for a specific amount of time. (default: ```2000ms```)
+3. The echo service sleeps for a specific amount of time. (default: ```1000ms```)
 4. ```sh.keptn.event.echo.finished``` event gets sent
 
 ## Configuration
