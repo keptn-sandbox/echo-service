@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: echo-service
-          image: keptnsandbox/echo-service:0.0.0-implement-echo-service
+          image: keptnsandbox/echo-service:0.1.0
           ports:
             - containerPort: 8080
           env:
@@ -32,7 +32,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
         - name: distributor
-          image: keptn/distributor:latest
+          image: keptn/distributor:20201211.0914 # TODO: update to 0.8.0 once it is released
           livenessProbe:
             httpGet:
               path: /health
