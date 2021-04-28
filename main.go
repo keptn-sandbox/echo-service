@@ -56,12 +56,12 @@ func _main(args []string, env envConfig) int {
 		log.Println("Using Broken cloud event processor that will send the .started and .finished events out of order")
 		processor = eventhandling.BrokenEchoCloudEventProcessor{
 			EventSender: eventSender,
-			Sleeper:     eventhandling.NewConfigurableSleeper(time.Duration(env.SleepTimeMillis)*time.Second, time.Sleep),
+			Sleeper:     eventhandling.NewConfigurableSleeper(time.Duration(env.SleepTimeMillis)*time.Millisecond, time.Sleep),
 		}
 	} else {
 		processor = eventhandling.EchoCloudEventProcessor{
 			EventSender: eventSender,
-			Sleeper:     eventhandling.NewConfigurableSleeper(time.Duration(env.SleepTimeMillis)*time.Second, time.Sleep),
+			Sleeper:     eventhandling.NewConfigurableSleeper(time.Duration(env.SleepTimeMillis)*time.Millisecond, time.Sleep),
 		}
 	}
 
