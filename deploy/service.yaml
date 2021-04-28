@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: echo-service
-          image: keptnsandbox/echo-service:0.1.0
+          image: keptnsandbox/echo-service:latest
           ports:
             - containerPort: 8080
           env:
