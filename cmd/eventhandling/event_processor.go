@@ -37,13 +37,15 @@ func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
 			log.Printf("Got Data Error: %s", err.Error())
 			return err
 		}
-
+		log.Println("Sending .echo.started event")
 		if err := ep.EventSender.SendEvent(createEchoStartedEvent(event)); err != nil {
 			log.Printf("Got Send Error: %s", err.Error())
 			return err
 		}
+		log.Printf("Sleeping for %.2f seconds", ep.Sleeper.GetSleepDuration().Seconds())
 		ep.Sleeper.Sleep()
 
+		log.Println("Sending .echo.finished event")
 		if err := ep.EventSender.SendEvent(createEchoFinishedEvent(event)); err != nil {
 			log.Printf("Got Send Error: %s", err.Error())
 			return err

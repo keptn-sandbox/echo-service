@@ -4,6 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: echo-service
+  namespace: keptn
 spec:
   selector:
     matchLabels:
@@ -32,23 +33,22 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
         - name: distributor
-          image: keptn/distributor:20201211.0914 # TODO: update to 0.8.0 once it is released
+          image: keptn/distributor:0.8.2
+          ports:
+            - containerPort: 8080
           livenessProbe:
             httpGet:
               path: /health
               port: 10999
             initialDelaySeconds: 5
             periodSeconds: 5
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8080
           resources:
             requests:
+              memory: "16Mi"
+              cpu: "25m"
+            limits:
               memory: "32Mi"
               cpu: "50m"
-            limits:
-              memory: "128Mi"
-              cpu: "500m"
           env:
             - name: PUBSUB_URL
               value: 'nats://keptn-nats-cluster'
@@ -64,6 +64,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: echo-service
+  namespace: keptn
   labels:
     app.kubernetes.io/name: shipyard-controller
     app.kubernetes.io/instance: keptn
