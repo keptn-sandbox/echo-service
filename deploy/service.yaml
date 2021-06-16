@@ -32,7 +32,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
         - name: distributor
-          image: keptn/distributor:0.8.4-dev-PR-4345.202106151441
+          image: keptn/distributor:0.8.4-dev-PR-4371.202106161114
           ports:
             - containerPort: 8080
           livenessProbe:
