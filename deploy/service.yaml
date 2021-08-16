@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: echo-service
-          image: keptnsandbox/echo-service:0.1.0
+          image: keptnsandbox/echo-service:0.1.1
           ports:
             - containerPort: 8080
           env:
@@ -32,7 +32,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
         - name: distributor
-          image: keptn/distributor:0.8.4-dev-PR-4371.202106161114
+          image: keptn/distributor:0.8.8-dev-PR-4656.202108161130
           ports:
             - containerPort: 8080
           livenessProbe:
