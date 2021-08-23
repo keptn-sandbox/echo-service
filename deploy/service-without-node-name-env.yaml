@@ -1,0 +1,100 @@
+---
+# Deployment of our echo-service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-service
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: echo-service
+      app.kubernetes.io/instance: keptn
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: echo-service
+        app.kubernetes.io/instance: keptn
+        app.kubernetes.io/part-of: keptn-keptn
+        app.kubernetes.io/component: control-plane
+        app.kubernetes.io/version: develop
+    spec:
+      containers:
+        - name: echo-service
+          image: keptnsandbox/echo-service:0.1.1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EVENTBROKER
+              value: 'http://localhost:8081/event'
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+        - name: distributor
+          image: keptn/distributor:0.8.8-dev-PR-4656.202108171413
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 10999
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "16Mi"
+              cpu: "25m"
+            limits:
+              memory: "32Mi"
+              cpu: "50m"
+          env:
+            - name: PUBSUB_URL
+              value: 'nats://keptn-nats-cluster'
+            - name: PUBSUB_TOPIC
+              value: 'sh.keptn.>'
+            - name: PUBSUB_RECIPIENT
+              value: '127.0.0.1'
+            - name: PUBSUB_RECIPIENT_PATH
+              value: '/v1/event'
+            - name: VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
+            - name: LOCATION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/component']
+            - name: K8S_DEPLOYMENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/name']
+            - name: K8S_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: K8S_NODE_NAME
+              value: 'some-node'
+---
+# Expose echo-service via Port 8080 within the cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-service
+  labels:
+    app.kubernetes.io/name: shipyard-controller
+    app.kubernetes.io/instance: keptn
+    app.kubernetes.io/part-of: keptn-keptn
+    app.kubernetes.io/component: control-plane
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: echo-service
+    app.kubernetes.io/instance: keptn
