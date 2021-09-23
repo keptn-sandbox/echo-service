@@ -29,9 +29,16 @@ type BrokenEchoCloudEventProcessor struct {
 
 // Process processes a cloud event
 func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
-
 	if event.Type() == events.EchoEventTriggeredType {
 		log.Printf("GOT EVENT: <%s>\n", events.EchoEventTriggeredType)
+		jsonMsg, err := event.MarshalJSON()
+		if err != nil {
+			log.Printf("Cannot process event %v", err)
+			return err
+		}
+
+		ep.printEvent(jsonMsg)
+
 		eventData := &events.EchoTriggeredEventData{}
 		if err := event.DataAs(eventData); err != nil {
 			log.Printf("Got Data Error: %s", err.Error())
@@ -54,9 +61,14 @@ func (ep EchoCloudEventProcessor) Process(event cloudevents.Event) error {
 	return nil
 }
 
+func (ep EchoCloudEventProcessor) printEvent(jsonMsg []byte) {
+	log.Println("----")
+	log.Println(string(jsonMsg))
+	log.Println("----")
+}
+
 // Process processes a cloud event
 func (ep BrokenEchoCloudEventProcessor) Process(event cloudevents.Event) error {
-
 	if event.Type() == events.EchoEventTriggeredType {
 		log.Printf("GOT EVENT: <%s>\n", events.EchoEventTriggeredType)
 		eventData := &events.EchoTriggeredEventData{}
@@ -105,7 +117,6 @@ func createEchoStartedEvent(incomingEvent cloudevents.Event) event.Event {
 }
 
 func createEchoFinishedEvent(incomingEvent cloudevents.Event) event.Event {
-
 	var shkeptnctx string
 	incomingEvent.Context.ExtensionAs("shkeptncontext", &shkeptnctx)
 
@@ -127,7 +138,5 @@ func createEchoFinishedEvent(incomingEvent cloudevents.Event) event.Event {
 	outEvent.SetExtension("shkeptncontext", shkeptnctx)
 	outEvent.SetExtension("triggeredid", incomingEvent.ID())
 	outEvent.SetData(cloudevents.ApplicationJSON, echoFinishedEventData)
-
 	return outEvent
-
 }
