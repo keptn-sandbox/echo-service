@@ -27,6 +27,8 @@ func TestEventsGetsSent(t *testing.T) {
 	}
 
 	event := cloudevents.NewEvent()
+	event.SetID("uuid")
+	event.SetSource("local")
 	event.SetType(events.EchoEventTriggeredType)
 	event.SetData(cloudevents.ApplicationJSON, events.EchoTriggeredEventData{})
 
@@ -49,6 +51,8 @@ func TestEventsGetsSentInWrongOrder(t *testing.T) {
 	}
 
 	event := cloudevents.NewEvent()
+	event.SetID("uuid")
+	event.SetSource("local")
 	event.SetType(events.EchoEventTriggeredType)
 	event.SetData(cloudevents.ApplicationJSON, events.EchoTriggeredEventData{})
 
