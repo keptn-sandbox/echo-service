@@ -104,8 +104,8 @@ func createEchoStartedEvent(incomingEvent cloudevents.Event) event.Event {
 		return event.Event{}
 	}
 
-	echoStartedEventData.Status = keptnv2.StatusSucceeded
 	echoStartedEventData.EventData = echoTriggeredEventData.EventData
+	echoStartedEventData.Status = keptnv2.StatusSucceeded
 	outEvent := cloudevents.NewEvent()
 	outEvent.SetType(events.EchoStartedEventType)
 	outEvent.SetSource(events.ServiceName)
@@ -127,10 +127,9 @@ func createEchoFinishedEvent(incomingEvent cloudevents.Event) event.Event {
 		log.Println(err.Error())
 		return event.Event{}
 	}
-
+	echoFinishedEventData.EventData = echoTriggeredEventData.EventData
 	echoFinishedEventData.Result = keptnv2.ResultPass
 	echoFinishedEventData.Status = keptnv2.StatusSucceeded
-	echoFinishedEventData.EventData = echoTriggeredEventData.EventData
 	outEvent := cloudevents.NewEvent()
 	outEvent.SetType(events.EchoFinishedEventType)
 	outEvent.SetSource(events.ServiceName)
